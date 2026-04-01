@@ -265,6 +265,69 @@ export const getPlaylistList = (data: object) => {
     data
   });
 };
+/**
+ * Author: Tanh
+ * Date: 2026-03-22
+ * Description: Playlist API - get bound song IDs
+ */
+export const getPlaylistSongIds = (id: number) => {
+  const userData = getToken();
+  return http.request<Result>("get", `/admin/getPlaylistSongIds/${id}`, {
+    headers: {
+      "Content-Type": "application/json",
+      Authorization: userData.accessToken
+    }
+  });
+};
+
+/**
+ * Author: Tanh
+ * Date: 2026-03-22
+ * Description: Playlist API - bind songs
+ */
+export const bindSongsToPlaylist = (data: object) => {
+  const userData = getToken();
+  return http.request<Result>("post", "/admin/bindSongsToPlaylist", {
+    headers: {
+      "Content-Type": "application/json",
+      Authorization: userData.accessToken
+    },
+    data
+  });
+};
+
+/**
+ * Author: Tanh
+ * Date: 2026-03-22
+ * Description: Playlist API - replace playlist songs
+ */
+export const replacePlaylistSongs = (data: object) => {
+  const userData = getToken();
+  return http.request<Result>("put", "/admin/replacePlaylistSongs", {
+    headers: {
+      "Content-Type": "application/json",
+      Authorization: userData.accessToken
+    },
+    data
+  });
+};
+
+/**
+ * Author: Tanh
+ * Date: 2026-03-22
+ * Description: Playlist API - unbind songs from playlist
+ */
+export const unbindSongsFromPlaylist = (data: object) => {
+  const userData = getToken();
+  return http.request<Result>("delete", "/admin/unbindSongsFromPlaylist", {
+    headers: {
+      "Content-Type": "application/json",
+      Authorization: userData.accessToken
+    },
+    data
+  });
+};
+
 
 /** 歌单管理-新增歌单 */
 export const addPlaylist = (data: object) => {

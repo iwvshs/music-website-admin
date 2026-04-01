@@ -1,5 +1,6 @@
 import "./reset.css";
 import editForm from "../form/index.vue";
+import bindSongsForm from "../form/bindSongs.vue";
 import { message } from "@/utils/message";
 import playlistCover from "@/assets/song.jpg";
 import { addDialog } from "@/components/ReDialog";
@@ -13,7 +14,8 @@ import {
   updatePlaylist,
   updatePlaylistCover,
   deletePlaylist,
-  deletePlaylists
+  deletePlaylists,
+  replacePlaylistSongs
 } from "@/api/system";
 import { type Ref, h, ref, toRaw, computed, reactive, onMounted } from "vue";
 
@@ -25,6 +27,7 @@ export function usePlaylist(tableRef: Ref) {
     style: null
   });
   const formRef = ref();
+  const bindSongsRef = ref();
   const dataList = ref([]);
   const loading = ref(true);
   // 上传歌单封面信息
@@ -109,8 +112,49 @@ export function usePlaylist(tableRef: Ref) {
     ];
   });
 
+  /**
+   * Author: Tanh
+   * Date: 2026-03-22
+   * Description: Manage playlist-song bindings
+   */
   function handleUpdate(row) {
-    console.log(row);
+    addDialog({
+      title: `Manage Songs - ${row.title || row.playlistId}`,
+      width: "70%",
+      draggable: true,
+      fullscreen: deviceDetection(),
+      fullscreenIcon: true,
+      closeOnClickModal: false,
+      contentRenderer: () =>
+        h(bindSongsForm, {
+          ref: bindSongsRef,
+          playlistId: row.playlistId,
+          playlistTitle: row.title || ""
+        }),
+      beforeSure: async done => {
+        const selectedSongIds = bindSongsRef.value?.getSelectedSongIds?.();
+
+        if (!Array.isArray(selectedSongIds)) {
+          message("Failed to load selected songs, please retry", { type: "error" });
+          return;
+        }
+
+        const res = await replacePlaylistSongs({
+          playlistId: row.playlistId,
+          songIds: selectedSongIds
+        });
+
+        if (res.code === 0) {
+          message(`Playlist ${row.title || row.playlistId} songs updated successfully`, {
+            type: "success"
+          });
+          done();
+          onSearch();
+        } else {
+          message(res.message || "Failed to update playlist songs", { type: "error" });
+        }
+      }
+    });
   }
 
   function handleDelete(row) {

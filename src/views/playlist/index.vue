@@ -138,7 +138,7 @@ const {
           </div>
           <pure-table
             ref="tableRef"
-            row-key="userId"
+            row-key="playlistId"
             adaptive
             :adaptiveConfig="{ offsetBottom: 108 }"
             align-whole="center"
@@ -190,10 +190,21 @@ const {
                   type="primary"
                   :size="size"
                   :icon="useRenderIcon(More)"
-                  @click="handleUpdate(row)"
                 />
                 <template #dropdown>
                   <el-dropdown-menu>
+                    <el-dropdown-item>
+                      <el-button
+                        :class="buttonClass"
+                        link
+                        type="primary"
+                        :size="size"
+                        :icon="useRenderIcon('ri:play-list-add-line')"
+                        @click="handleUpdate(row)"
+                      >
+                        Manage Songs
+                      </el-button>
+                    </el-dropdown-item>
                     <el-dropdown-item>
                       <el-button
                         :class="buttonClass"
