@@ -10,6 +10,7 @@ import {
   ref,
   unref,
   computed,
+  nextTick,
   onMounted,
   onUnmounted,
   defineComponent
@@ -146,12 +147,19 @@ export default defineComponent({
     async function init() {
       const imgEl = unref(imgElRef);
       if (!imgEl) return;
+      cropper.value?.destroy();
       cropper.value = new Cropper(imgEl, {
         ...defaultOptions,
         ready: () => {
           isReady.value = true;
-          realTimeCroppered();
+          // Ensure parent preview panel can open even if first crop fails
+          // (e.g. cross-origin image without CORS headers).
           delay(400).then(() => emit("readied", cropper.value));
+          try {
+            realTimeCroppered();
+          } catch (error) {
+            emit("error", error);
+          }
         },
         crop() {
           debounceRealTimeCroppered();
@@ -172,9 +180,15 @@ export default defineComponent({
 
     function croppered() {
       if (!cropper.value) return;
-      const canvas = inCircled.value
-        ? getRoundedCanvas()
-        : cropper.value.getCroppedCanvas();
+      let canvas: HTMLCanvasElement;
+      try {
+        canvas = inCircled.value
+          ? getRoundedCanvas()
+          : cropper.value.getCroppedCanvas();
+      } catch (error) {
+        emit("error", error);
+        return;
+      }
       // https://developer.mozilla.org/zh-CN/docs/Web/API/HTMLCanvasElement/toBlob
       canvas.toBlob(blob => {
         if (!blob) return;
@@ -232,16 +246,14 @@ export default defineComponent({
         : cropper.value?.[event]?.(arg);
     }
 
-    function beforeUpload(file) {
+    function beforeUpload(file: File) {
       const reader = new FileReader();
-      reader.readAsDataURL(file);
-      inSrc.value = "";
       reader.onload = e => {
+        isReady.value = false;
         inSrc.value = e.target?.result as string;
+        nextTick(init);
       };
-      reader.onloadend = () => {
-        init();
-      };
+      reader.readAsDataURL(file);
       return false;
     }
 
@@ -378,7 +390,7 @@ export default defineComponent({
       }
     });
 
-    function onContextmenu(event) {
+    function onContextmenu(event: MouseEvent) {
       event.preventDefault();
 
       const { show, setProps, destroy, state } = useTippy(tippyElRef, {
@@ -411,6 +423,10 @@ export default defineComponent({
       }
     }
 
+    function onImgError() {
+      emit("error");
+    }
+
     return {
       inSrc,
       props,
@@ -421,7 +437,8 @@ export default defineComponent({
       getImageStyle,
       isReady,
       croppered,
-      onContextmenu
+      onContextmenu,
+      onImgError
     };
   },
 
@@ -432,7 +449,8 @@ export default defineComponent({
       getClass,
       getImageStyle,
       onContextmenu,
-      getWrapperStyle
+      getWrapperStyle,
+      onImgError
     } = this;
     const { alt, crossorigin } = this.props;
 
@@ -441,7 +459,7 @@ export default defineComponent({
         ref="tippyElRef"
         class={getClass}
         style={getWrapperStyle}
-        onContextmenu={event => onContextmenu(event)}
+        onContextmenu={onContextmenu}
       >
         <img
           v-show={isReady}
@@ -450,6 +468,7 @@ export default defineComponent({
           src={inSrc}
           alt={alt}
           crossorigin={crossorigin}
+          onError={onImgError}
         />
       </div>
     ) : null;

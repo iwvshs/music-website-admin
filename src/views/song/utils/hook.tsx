@@ -354,6 +354,7 @@ export function useSong(tableRef: Ref, treeRef: Ref) {
   const cropRef = ref();
   /** 上传封面 */
   async function handleUpload(row) {
+    coverInfo.value = null;
     addDialog({
       title: "裁剪、上传封面",
       width: "40%",
@@ -392,7 +393,7 @@ export function useSong(tableRef: Ref, treeRef: Ref) {
           message("上传失败，请重试", { type: "error" });
         }
       },
-      closeCallBack: () => cropRef.value.hidePopover()
+      closeCallBack: () => cropRef.value?.hidePopover?.()
     });
   }
 

@@ -15,18 +15,25 @@ const emit = defineEmits(["cropper"]);
 
 const infos = ref();
 const popoverRef = ref();
-const refCropper = ref();
 const showPopover = ref(false);
+const cropError = ref(false);
 const cropperImg = ref<string>("");
 
 function onCropper({ base64, blob, info }) {
+  cropError.value = false;
   infos.value = info;
   cropperImg.value = base64;
   emit("cropper", { base64, blob, info });
 }
 
+function onCropperError() {
+  // Keep dialog usable when old remote cover cannot be cropped due CORS.
+  showPopover.value = true;
+  cropError.value = true;
+}
+
 function hidePopover() {
-  popoverRef.value.hide();
+  popoverRef.value?.hide?.();
 }
 
 defineExpose({ hidePopover });
@@ -43,14 +50,17 @@ defineExpose({ hidePopover });
       <template #reference>
         <div class="w-[18vw]">
           <ReCropper
-            ref="refCropper"
             :src="imgSrc"
             circled
             @cropper="onCropper"
+            @error="onCropperError"
             @readied="showPopover = true"
           />
           <p v-show="showPopover" class="mt-1 text-center">
-            温馨提示：右键上方裁剪区可开启功能菜单
+            温馨提示：右键上方裁剪区可打开功能菜单
+          </p>
+          <p v-if="cropError" class="mt-1 text-center text-[var(--el-color-warning)]">
+            当前封面无法直接裁剪，请在右键菜单中先上传新图片。
           </p>
         </div>
       </template>

@@ -1,13 +1,13 @@
 {
   "$schema": "https://json.schemastore.org/jsconfig",
-  "name": "vibe-music-admin",
+  "name": "coda-music-admin",
   "private": true,
   "version": "1.0.0",
   "type": "module",
-  "description": "Vibe Music",
+  "description": "Coda Music",
   "author": {
     "name": "Alex LiSun",
-    "email": "vibe_music_service@163.com"
+    "email": "coda_music_service@163.com"
   },
   "scripts": {
     "dev": "set NODE_OPTIONS=--max-old-space-size=4096&& vite",
